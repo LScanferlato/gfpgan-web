@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>🖼️ Upscaler 2x con GFPGAN / Real-ESRGAN</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background: #f8f9fa; }
+    h1 { color: #2c3e50; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .form-group { margin: 15px 0; text-align: left; }
+    label { font-weight: bold; margin-bottom: 5px; display: block; color: #34495e; }
+    select, button { padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
+    button:hover { background: #0056b3; }
+    .image-row img { width: 48%; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+    .note { font-size: 0.9em; color: #7f8c8d; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Upscaler 2x Web</h1>
+    <p>Riduce l'immagine del 50% e la ripristina con upscaling 2x.</p>
+
+    <div class="form-group">
+      <label for="model">Scegli il modello:</label>
+      <select id="model">
+        <option value="gfpgan">GFPGAN (migliore per volti)</option>
+        <option value="realesrgan">Real-ESRGAN (migliore per generico)</option>
+      </select>
+    </div>
+
+    <input type="file" id="imageUpload" accept="image/*" style="display: block; margin: 20px auto;" />
+    <button onclick="processImage()">Elabora Immagine</button>
+
+    <div id="results" style="display: none; margin-top: 30px;">
+      <h3>Confronto</h3>
+      <div class="image-row">
+        <img id="imgLow" alt="Bassa qualità" />
+        <img id="imgHigh" alt="Ripristinata 2x" />
+      </div>
+      <p class="note">Sinistra: ridotta del 50%. Destra: elaborata con il modello selezionato.</p>
+    </div>
+  </div>
+
+  <script>
+    async function processImage() {
+      const fileInput = document.getElementById('imageUpload');
+      const model = document.getElementById('model').value;
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Seleziona un'immagine!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("model", model);
+
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        document.getElementById("imgLow").src = URL.createObjectURL(file);
+        document.getElementById("imgHigh").src = url;
+        document.getElementById("results").style.display = "block";
+      } else {
+        const text = await response.text();
+        alert("Errore: " + text);
+      }
+    }
+  </script>
+</body>
+</html>
